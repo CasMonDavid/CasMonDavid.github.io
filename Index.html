@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crozy Road: revelation</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="1080" height="880"></canvas>
+    <script>
+        const c = document.getElementById("myCanvas");
+        const ctx = c.getContext("2d");
+
+        const audio = new Audio("mario-coin.mp3");
+
+        class Rectangulo {
+            constructor(x,y,w,h,c,s) {
+              this.x = x;
+              this.y = y;
+              this.w = w;
+              this.h = h;
+              this.c = c;
+              this.s = s;
+            }
+
+            estaTocando(objetivo){
+                if (this.x < objetivo.x + objetivo.w && 
+                    this.x + this.w > objetivo.x   &&
+                    this.y < objetivo.y + objetivo.h && 
+                    this.y + this.h > objetivo.y) {
+                    return true;
+                }
+                return false;
+            };
+
+          }
+
+        const player = new Rectangulo(450,200,40,40,getRandomColor(),10);
+        const target = new Rectangulo(100,100,20,20,getRandomColor(),0);
+        var walls = [];
+        var direction = "";
+        var score = 0;
+        var pause = false;
+
+        const image = new Image(40,40);
+
+        image.src = "pacman.png";
+
+        walls.push(new Rectangulo(300,700,500,70,getRandomColor(),0));
+        walls.push(new Rectangulo(200,100,700,70,getRandomColor(),0));
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        var x_random = Math.floor(Math.random() * 1000);
+        var y_random = Math.floor(Math.random() * 800);
+
+        document.addEventListener('keydown', (e) => {
+
+            if (pause){
+                if (e.keyCode == 32){
+                    pause = !pause;
+                }
+            }else{
+                switch(e.keyCode){
+                case 38:
+                    direction = "up";
+                    break;
+                case 40:
+                    direction = "down";
+                    break;
+                case 37:
+                    direction = "left";
+                    break;
+                case 39:
+                    direction = "right";
+                    break;
+                case 32:
+                    pause = !pause;
+                    break;
+            }
+            }
+        });
+
+        function update(){
+
+            if (pause){
+                //El jugador no se mueve
+            }else{
+                switch(direction){
+                case "up":
+                    player.y -= player.s;
+                    if (player.y < -20){
+                        player.y = 900;
+                    }
+                    break;
+                case "down":
+                    player.y += player.s;
+                    if (player.y > 900){
+                        player.y = -20;
+                    }
+                    break;
+                case "left":
+                    player.x -= player.s;
+                    if (player.x < -20){
+                        player.x = 1100;
+                    }
+                    break;
+                case "right":
+                    player.x += player.s;
+                    if (player.x > 1100){
+                        player.x = -20;
+                    }
+                    break;
+                }
+            }
+
+            if (player.estaTocando(target)){
+                target.x = Math.floor(Math.random() * 1000);
+                target.y = Math.floor(Math.random() * 800);
+                target.c = getRandomColor();
+
+                audio.pause();
+                audio.play();
+
+                score += 5;
+                player.s += 2;
+            }
+
+            walls.forEach(wall => {
+                if (player.estaTocando(wall)){
+                switch(direction){
+                    case "up":
+                        player.y += player.s;
+                        break;
+                    case "down":
+                        player.y -= player.s;
+                        break;
+                    case "left":
+                        player.x += player.s;
+                        break;
+                    case "right":
+                        player.x -= player.s;
+                        break;
+                }
+            }
+            if (target.estaTocando(wall)){
+                target.x = Math.floor(Math.random() * 1000);
+                target.y = Math.floor(Math.random() * 800);
+                target.c = getRandomColor();
+
+                //El objetivo aparecio dentro de la pared
+            }
+            });
+        }
+
+        function dibujar(){
+            //Marca el limite del lienzo
+            ctx.strokeStyle = "black"
+            ctx.strokeRect(0, 0, 1080, 880);
+
+            ctx.fillStyle = "white";
+            ctx.fillRect(1, 1, 1078, 878);
+
+            //jugador
+            ctx.fillStyle = player.c;
+            ctx.drawImage(image, player.x, player.y, player.w, player.h);
+
+            //objetivo
+            ctx.fillStyle = target.c;
+            ctx.fillRect(target.x, target.y, target.w, target.h);
+
+            //dibujar muros
+            walls.forEach(wall =>{
+                ctx.fillStyle = wall.c;
+                ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+                ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
+            });
+
+            //dibujar velocidad
+            ctx.fillStyle = "black";
+            ctx.font = "30px Papyrus";
+            ctx.fillText("Velocidad: "+player.s, 10, 40);
+
+            //dibujar score
+            ctx.fillStyle = "black";
+            ctx.font = "30px Arial";
+            ctx.fillText("Puntuación: "+score, 850, 40);
+
+            if (pause){
+                ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                ctx.fillRect(1, 1, 1078, 879);
+
+                ctx.fillStyle = "black";
+                ctx.font = "30px Arial";
+                ctx.fillText("PAUSA", 525, 350);
+            }
+
+            update();
+            requestAnimationFrame(dibujar);
+        };
+
+        requestAnimationFrame(dibujar);
+    </script>
+</body>
+</html>
