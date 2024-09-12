@@ -6,21 +6,25 @@
     <title>Crozy Road: revelation</title>
 </head>
 <body>
-    <canvas id="myCanvas" width="1080" height="880"></canvas>
+    <canvas id="myCanvas" width="1500" height="880"></canvas>
     <script>
         const c = document.getElementById("myCanvas");
         const ctx = c.getContext("2d");
 
         const audio = new Audio("mario-coin.mp3");
+        let juegoTerminado = false;
+        let pause = false;
+        let direction = "";
 
-        class Rectangulo {
-            constructor(x,y,w,h,c,s) {
-              this.x = x;
-              this.y = y;
-              this.w = w;
-              this.h = h;
-              this.c = c;
-              this.s = s;
+        class Entidad {
+            constructor(x,y,w,h,c,s,vida,tipo) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.c = c;
+                this.s = s;
+                this.vida = vida;
             }
 
             estaTocando(objetivo){
@@ -29,25 +33,24 @@
                     this.y < objetivo.y + objetivo.h && 
                     this.y + this.h > objetivo.y) {
                     return true;
+
+                    //Si entidad jugador choca con enemigo pierda una vida de 3
+                    if (this.tipo=="player" && objetivo.tipo=="enemy"){
+                        this.vida-=1;
+                        conVida();
+                    }
                 }
                 return false;
             };
 
-          }
+        }
 
-        const player = new Rectangulo(450,200,40,40,getRandomColor(),10);
-        const target = new Rectangulo(100,100,20,20,getRandomColor(),0);
-        var walls = [];
-        var direction = "";
-        var score = 0;
-        var pause = false;
+        const player = new Entidad(10,420,30,30,getRandomColor(),2,3,"player");
+        const enemyTest = new Entidad(250,420,25,40,getRandomColor(),2,-1,"enemy");
 
+        
         const image = new Image(40,40);
-
         image.src = "pacman.png";
-
-        walls.push(new Rectangulo(300,700,500,70,getRandomColor(),0));
-        walls.push(new Rectangulo(200,100,700,70,getRandomColor(),0));
 
         function getRandomColor() {
             var letters = '0123456789ABCDEF';
@@ -58,8 +61,7 @@
             return color;
         }
         
-        var x_random = Math.floor(Math.random() * 1000);
-        var y_random = Math.floor(Math.random() * 800);
+        //var x_random = Math.floor(Math.random() * 1000);
 
         document.addEventListener('keydown', (e) => {
 
@@ -119,87 +121,53 @@
                     }
                     break;
                 }
-            }
 
-            if (player.estaTocando(target)){
-                target.x = Math.floor(Math.random() * 1000);
-                target.y = Math.floor(Math.random() * 800);
-                target.c = getRandomColor();
-
-                audio.pause();
-                audio.play();
-
-                score += 5;
-                player.s += 2;
-            }
-
-            walls.forEach(wall => {
-                if (player.estaTocando(wall)){
-                switch(direction){
-                    case "up":
-                        player.y += player.s;
-                        break;
-                    case "down":
-                        player.y -= player.s;
-                        break;
-                    case "left":
-                        player.x += player.s;
-                        break;
-                    case "right":
-                        player.x -= player.s;
-                        break;
+                //Movimiento enemigo
+                enemyTest.y-=4;
+                if (enemyTest.y < -20){
+                    enemyTest.y = 900;
                 }
             }
-            if (target.estaTocando(wall)){
-                target.x = Math.floor(Math.random() * 1000);
-                target.y = Math.floor(Math.random() * 800);
-                target.c = getRandomColor();
 
-                //El objetivo aparecio dentro de la pared
+            
+
+            if (player.estaTocando(enemyTest)) {
+                if (player.vida === 1){
+                    juegoTerminado=true;
+                    console.log("El jugador perdió todas sus vidas");
+                }else{
+                    console.log("Vida del jugador: "+(player.vida-1))
+                    player.vida-=1;
+                    player.x=10;//Reinicia la posicion del jugador
+                    player.y=420;//Reinicia la posicion del jugador
+                }
             }
-            });
         }
 
         function dibujar(){
             //Marca el limite del lienzo
             ctx.strokeStyle = "black"
-            ctx.strokeRect(0, 0, 1080, 880);
+            ctx.strokeRect(0, 0, 1500, 880);
 
+            //fondo blanco
             ctx.fillStyle = "white";
-            ctx.fillRect(1, 1, 1078, 878);
+            ctx.fillRect(1, 1, 1498, 878);
 
-            //jugador
+            //dibujar jugador
             ctx.fillStyle = player.c;
-            ctx.drawImage(image, player.x, player.y, player.w, player.h);
+            ctx.fillRect(player.x,player.y,player.w,player.h);
 
-            //objetivo
-            ctx.fillStyle = target.c;
-            ctx.fillRect(target.x, target.y, target.w, target.h);
-
-            //dibujar muros
-            walls.forEach(wall =>{
-                ctx.fillStyle = wall.c;
-                ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
-                ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
-            });
-
-            //dibujar velocidad
-            ctx.fillStyle = "black";
-            ctx.font = "30px Papyrus";
-            ctx.fillText("Velocidad: "+player.s, 10, 40);
-
-            //dibujar score
-            ctx.fillStyle = "black";
-            ctx.font = "30px Arial";
-            ctx.fillText("Puntuación: "+score, 850, 40);
+            //dibujar jugador
+            ctx.fillStyle = enemyTest.c;
+            ctx.fillRect(enemyTest.x,enemyTest.y,enemyTest.w,enemyTest.h);
 
             if (pause){
                 ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-                ctx.fillRect(1, 1, 1078, 879);
+                ctx.fillRect(1, 1, 1498, 879);
 
                 ctx.fillStyle = "black";
                 ctx.font = "30px Arial";
-                ctx.fillText("PAUSA", 525, 350);
+                ctx.fillText("P A U S A", 725, 350);
             }
 
             update();
