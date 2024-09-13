@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crozy Road: revelation</title>
+    <link rel="stylesheet" href="Index.css">
 </head>
 <body>
+
     <canvas id="myCanvas" width="1500" height="880"></canvas>
+
     <script>
         const c = document.getElementById("myCanvas");
         const ctx = c.getContext("2d");
@@ -25,6 +28,8 @@
                 this.c = c;
                 this.s = s;
                 this.vida = vida;
+                const frameX = 16;
+                const framey = 16;
             }
 
             estaTocando(objetivo){
@@ -45,7 +50,10 @@
 
         }
 
-        const player = new Entidad(10,420,30,30,getRandomColor(),2,3,"player");
+        const playerSprite = new Image();
+        playerSprite.src = "";
+
+        const player = new Entidad(10,420,16,16,getRandomColor(),2,3,"player");
         const enemyTest = new Entidad(250,420,25,40,getRandomColor(),2,-1,"enemy");
 
         
