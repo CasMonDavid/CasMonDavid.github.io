@@ -19,8 +19,14 @@
         let pause = false;
         let direction = "";
 
+        const keys = [];
+
+        //Imagenes
+        const playerSprite = new Image();
+        playerSprite.src = "img/ChickenWalkALLx2.png";
+
         class Entidad {
-            constructor(x,y,w,h,c,s,vida,tipo) {
+            constructor(x,y,w,h,c,s,vida,tipo,frameX,frameY,moving) {
                 this.x = x;
                 this.y = y;
                 this.w = w;
@@ -28,8 +34,9 @@
                 this.c = c;
                 this.s = s;
                 this.vida = vida;
-                const frameX = 16;
-                const framey = 16;
+                this.frameX = frameX;
+                this.frameY = frameY;
+                this.moving = false;
             }
 
             estaTocando(objetivo){
@@ -50,15 +57,8 @@
 
         }
 
-        const playerSprite = new Image();
-        playerSprite.src = "";
-
-        const player = new Entidad(10,420,16,16,getRandomColor(),2,3,"player");
-        const enemyTest = new Entidad(250,420,25,40,getRandomColor(),2,-1,"enemy");
-
-        
-        const image = new Image(40,40);
-        image.src = "pacman.png";
+        const player = new Entidad(10,420,32,32,getRandomColor(),2,3,"player",0,0,false);
+        const enemyTest = new Entidad(250,420,25,40,getRandomColor(),4,-1,"enemy",0,0,true);
 
         function getRandomColor() {
             var letters = '0123456789ABCDEF';
@@ -71,73 +71,60 @@
         
         //var x_random = Math.floor(Math.random() * 1000);
 
-        document.addEventListener('keydown', (e) => {
+        function drawSprite(img,sX,sY,sW,sH,dX,dY,dW,dH){
+            ctx.drawImage(img,sX,sY,sW,sH,dX,dY,dW,dH);
+        }
 
-            if (pause){
-                if (e.keyCode == 32){
-                    pause = !pause;
-                }
-            }else{
-                switch(e.keyCode){
-                case 38:
-                    direction = "up";
-                    break;
-                case 40:
-                    direction = "down";
-                    break;
-                case 37:
-                    direction = "left";
-                    break;
-                case 39:
-                    direction = "right";
-                    break;
-                case 32:
-                    pause = !pause;
-                    break;
-            }
+        document.addEventListener('keydown', (e) => {
+            keys[e.keyCode] = true;
+            player.moving = true;
+            if (keys[32]){
+                pause = !pause;
             }
         });
+
+        document.addEventListener("keyup", (e) => {
+            delete keys[e.keyCode];
+            player.moving = false;
+        });
+
+        function movePlayer(){
+            if (keys[38] && player.y > 0){
+                player.y -= player.s;
+                player.frameY=1;
+            }
+            if (keys[40] && player.y < 880){
+                player.y += player.s;
+                player.frameY=0;
+            }
+            if (keys[37] && player.x > 0){
+                player.x -= player.s;
+                player.frameY=2;
+            }
+            if (keys[39] && player.x < 1500){
+                player.x += player.s;
+                player.frameY=3;
+            }
+        }
+
+        function playerAnimation(){
+            if (player.frameX < 3 && player.moving) player.frameX++
+            else player.frameX = 0;
+        }
 
         function update(){
 
             if (pause){
-                //El jugador no se mueve
-            }else{
-                switch(direction){
-                case "up":
-                    player.y -= player.s;
-                    if (player.y < -20){
-                        player.y = 900;
-                    }
-                    break;
-                case "down":
-                    player.y += player.s;
-                    if (player.y > 900){
-                        player.y = -20;
-                    }
-                    break;
-                case "left":
-                    player.x -= player.s;
-                    if (player.x < -20){
-                        player.x = 1100;
-                    }
-                    break;
-                case "right":
-                    player.x += player.s;
-                    if (player.x > 1100){
-                        player.x = -20;
-                    }
-                    break;
-                }
+                //Se detienen los movimientos
+            }else {
+                movePlayer();
 
                 //Movimiento enemigo
-                enemyTest.y-=4;
+                enemyTest.y-=enemyTest.s;
                 if (enemyTest.y < -20){
                     enemyTest.y = 900;
                 }
             }
-
-            
 
             if (player.estaTocando(enemyTest)) {
                 if (player.vida === 1){
@@ -153,17 +140,12 @@
         }
 
         function dibujar(){
-            //Marca el limite del lienzo
-            ctx.strokeStyle = "black"
-            ctx.strokeRect(0, 0, 1500, 880);
-
             //fondo blanco
             ctx.fillStyle = "white";
             ctx.fillRect(1, 1, 1498, 878);
 
             //dibujar jugador
-            ctx.fillStyle = player.c;
-            ctx.fillRect(player.x,player.y,player.w,player.h);
+            drawSprite(playerSprite, player.w * player.frameX , player.h * player.frameY ,player.w,player.h,player.x,player.y,player.w,player.h);
 
             //dibujar jugador
             ctx.fillStyle = enemyTest.c;
@@ -181,8 +163,12 @@
             update();
             requestAnimationFrame(dibujar);
         };
-
         requestAnimationFrame(dibujar);
+
+        setInterval(function(){
+            playerAnimation();
+        }, 50)
+        
     </script>
 </body>
 </html>
