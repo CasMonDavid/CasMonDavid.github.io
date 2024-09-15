@@ -16,7 +16,22 @@
 
         const audio = new Audio("mario-coin.mp3");
         const backgroundMusic = new Audio('audio/donkey-kong-country.mp3');
-        //document.body.appendChild(backgroundMusic);
+        backgroundMusic.loop = true;
+        backgroundMusic.muted = true;
+
+        //Imagenes
+        const playerSprite = new Image();
+        const carJeepBlue = new Image();
+        const carJeepBlack = new Image();
+        const carBoxtruckBrown = new Image();
+        const musicMuted = new Image();
+        const musicNotMuted = new Image();
+        playerSprite.src = "img/ChickenWalkALLx2.png";
+        carJeepBlue.src = "img/Blue_JEEP_CLEAN_8D_000-sheet.png";
+        carJeepBlack.src = "img/Black_JEEP_CLEAN_8D_000-sheet.png";
+        carBoxtruckBrown.src = "img/Brown_BOXTRUCK_CLEAN_8D_000-sheet.png";
+        musicMuted.src = "img/musicMuted.png";
+        musicNotMuted.src = "img/musicNotMuted.png";
 
         const keys = [];
         let juegoTerminado = false;
@@ -25,9 +40,7 @@
         let nivel = 1;
         let enemys = []
 
-        //Imagenes
-        const playerSprite = new Image();
-        playerSprite.src = "img/ChickenWalkALLx2.png";
+        
 
         class Entidad {
             constructor(x,y,w,h,c,s,vida,tipo,frameX,frameY,moving) {
@@ -73,9 +86,10 @@
         }
         
         function enemysLevelOne(){
+            enemys.length = 0;
             let desplazamiento = 50;
             for(let i=0;i<=5;i++){
-                let enemy = new Entidad((250+(desplazamiento*i)),420,25,40,getRandomColor(),4,-1,"enemy",0,0,true);
+                let enemy = new Entidad((250+(desplazamiento*i)),420,44,57,getRandomColor(),4,-1,"enemy",0.65,3.95,true);
                 enemys.push(enemy);
             }
         }
@@ -95,14 +109,18 @@
             ctx.drawImage(img,sX,sY,sW,sH,dX,dY,dW,dH);
         }
 
-
-
         document.addEventListener('keydown', (e) => {
             keys[e.keyCode] = true;
             player.moving = true;
             if (keys[32]){
                 pause = !pause;
             }
+            if (keys[77]){
+                backgroundMusic.pause();
+                backgroundMusic.muted = !backgroundMusic.muted;
+                backgroundMusic.play();
+            }
+            console.log("Código: "+e.keyCode); ///////////////Eliminar al finalizar
         });
 
         document.addEventListener("keyup", (e) => {
@@ -115,7 +133,7 @@
                 player.y -= player.s;
                 player.frameY=1;
             }
-            if (keys[40] && player.y < 880){
+            if (keys[40] && player.y < 850){
                 player.y += player.s;
                 player.frameY=0;
             }
@@ -123,7 +141,7 @@
                 player.x -= player.s;
                 player.frameY=2;
             }
-            if (keys[39] && player.x < 1500){
+            if (keys[39] && player.x < 1470){
                 player.x += player.s;
                 player.frameY=3;
             }
@@ -135,15 +153,13 @@
         }
 
         enemysLevelOne();
-        //backgroundMusic.loop = true;
-        //backgroundMusic.play();
 
         function update(){
-            
             if (pause){
                 //Se detienen los movimientos
             }else {
                 movePlayer();
+
                 //Movimiento de los enemigos
                 enemys.forEach(enemy => {
                     enemy.y-=enemy.s;
@@ -152,7 +168,6 @@
                     }
                 });
             }
-
             
             enemys.forEach(enemy => {
                 if (player.estaTocando(enemy)) {
@@ -181,9 +196,11 @@
             //dibujar jugador
             drawSprite(playerSprite, player.w * player.frameX , player.h * player.frameY ,player.w,player.h,player.x,player.y,player.w,player.h);
 
+            //dibujar enemigos
             enemys.forEach(enemy => {
-                ctx.fillStyle = enemy.c;
-                ctx.fillRect(enemy.x,enemy.y,enemy.w,enemy.h);
+                ctx.strokeStyle = "black";
+                ctx.strokeRect(enemy.x,enemy.y,enemy.w,enemy.h);
+                drawSprite(carJeepBlue, enemy.w * enemy.frameX , enemy.h * enemy.frameY ,enemy.w,enemy.h,enemy.x,enemy.y,enemy.w,enemy.h);
             });
 
             if (pause){
@@ -195,6 +212,16 @@
                 ctx.fillText("P A U S A", 725, 350);
             }
 
+            if (backgroundMusic.muted){
+                ctx.fillStyle = "black";
+                ctx.fillRect(1396,804,93,64);
+                ctx.drawImage(musicMuted,0,0,256,167,1400,808,85,56);
+            }else{
+                ctx.fillStyle = "black";
+                ctx.fillRect(1396,804,93,64);
+                ctx.drawImage(musicNotMuted,0,0,256,181,1400,808,85,56);
+            }
+
             update();
             requestAnimationFrame(dibujar);
         };
@@ -202,7 +229,7 @@
 
         setInterval(function(){
             playerAnimation();
-        }, 50)
+        }, 100)
         
     </script>
 </body>
