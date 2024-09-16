@@ -14,10 +14,15 @@
         const c = document.getElementById("myCanvas");
         const ctx = c.getContext("2d");
 
-        const audio = new Audio("mario-coin.mp3");
+        //Audio
+        const streetTrafficSound = new Audio("audio/street-traffic-2.mp3");
         const backgroundMusic = new Audio('audio/donkey-kong-country.mp3');
+        streetTrafficSound.loop = true;
+        streetTrafficSound.muted = true;
+        streetTrafficSound.volume = 0.2;
         backgroundMusic.loop = true;
         backgroundMusic.muted = true;
+        backgroundMusic.volume = 0.4;
 
         //Imagenes
         const playerSprite = new Image();
@@ -26,21 +31,32 @@
         const carBoxtruckBrown = new Image();
         const musicMuted = new Image();
         const musicNotMuted = new Image();
+        const roadSummer = new Image();
+        const roadDesert = new Image();
+        const roadWinter = new Image();
         playerSprite.src = "img/ChickenWalkALLx2.png";
         carJeepBlue.src = "img/Blue_JEEP_CLEAN_8D_000-sheet.png";
         carJeepBlack.src = "img/Black_JEEP_CLEAN_8D_000-sheet.png";
         carBoxtruckBrown.src = "img/Brown_BOXTRUCK_CLEAN_8D_000-sheet.png";
         musicMuted.src = "img/MusicMuted.png";
         musicNotMuted.src = "img/MusicNotMuted.png";
+        roadSummer.src = "img/Carreteras/Summer_road (64 x 64).png"
+        roadDesert.src = "img/Carreteras/Desert_road (64 x 64).png"
+        roadWinter.src = "img/Carreteras/Winter_road (64 x 64).png"
 
+        //Variables globales
         const keys = [];
         let juegoTerminado = false;
         let pause = false;
         let direction = "";
         let nivel = 1;
         let enemys = []
-
-        
+        let contadorSegundos = 0;
+        let contadorMinutos = 0;
+        let isTimeStop = false;
+        let tiempoTxt = "";
+        let mapLevel = 1;
+        let desplazamientoCarretera = 0;
 
         class Entidad {
             constructor(x,y,w,h,c,s,vida,tipo,frameX,frameY,moving) {
@@ -71,8 +87,9 @@
                 }
                 return false;
             };
-
+            
         }
+        const player = new Entidad(10,420,32,32,getRandomColor(),2,3,"player",0,0,false);
 
         function reset (){
             player.x=10;
@@ -82,20 +99,29 @@
             player.s=2;
             player.moving=false;
 
-
+            
         }
         
         function enemysLevelOne(){
             enemys.length = 0;
             let desplazamiento = 50;
+            let enemy;
             for(let i=0;i<=5;i++){
-                let enemy = new Entidad((250+(desplazamiento*i)),420,44,57,getRandomColor(),4,-1,"enemy",0.65,3.95,true);
+                if ((i%2)==0){
+                    enemy = new Entidad((166+(desplazamiento*i)),850,44,57,getRandomColor(),getRandomInt(1,7),-1,"enemy",0.65,3.95,true);
+                }else{
+                    enemy = new Entidad((166+(desplazamiento*i)),850,44,57,getRandomColor(),(getRandomInt(1,7)*-1),-1,"enemy",0.65,3.95,true);
+                }
                 enemys.push(enemy);
             }
         }
 
-        const player = new Entidad(10,420,32,32,getRandomColor(),2,3,"player",0,0,false);
-        
+        function getRandomInt(min,max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+
         function getRandomColor() {
             var letters = '0123456789ABCDEF';
             var color = '#';
@@ -105,8 +131,23 @@
             return color;
         }
 
+        function tiempo(){
+            if (contadorSegundos<60 && !isTimeStop){
+                contadorSegundos+=1;
+                if (contadorSegundos==60){
+                    contadorSegundos=0;
+                    contadorMinutos+=1;
+                }
+            }
+        }
+
         function drawSprite(img,sX,sY,sW,sH,dX,dY,dW,dH){
             ctx.drawImage(img,sX,sY,sW,sH,dX,dY,dW,dH);
+        }
+
+        function playerAnimation(){
+            if (player.frameX < 3 && player.moving) player.frameX++
+            else player.frameX = 0;
         }
 
         document.addEventListener('keydown', (e) => {
@@ -114,11 +155,16 @@
             player.moving = true;
             if (keys[32]){
                 pause = !pause;
+                isTimeStop = !isTimeStop;
             }
             if (keys[77]){
                 backgroundMusic.pause();
                 backgroundMusic.muted = !backgroundMusic.muted;
                 backgroundMusic.play();
+                
+                streetTrafficSound.pause();
+                streetTrafficSound.muted = !streetTrafficSound.muted;
+                streetTrafficSound.play();
             }
             console.log("Código: "+e.keyCode); ///////////////Eliminar al finalizar
         });
@@ -147,11 +193,6 @@
             }
         }
 
-        function playerAnimation(){
-            if (player.frameX < 3 && player.moving) player.frameX++
-            else player.frameX = 0;
-        }
-
         enemysLevelOne();
 
         function update(){
@@ -165,14 +206,14 @@
                     enemy.y-=enemy.s;
                     if (enemy.y < -20){
                         enemy.y = 900;
+                    }else if (enemy.y > 900){
+                        enemy.y = -20;
                     }
                 });
             }
             
             enemys.forEach(enemy => {
                 if (player.estaTocando(enemy)) {
-                    audio.play();
-                    
 
                     if (player.vida === 1){
                         juegoTerminado=true;
@@ -190,8 +231,29 @@
 
         function dibujar(){
             //fondo blanco
-            ctx.fillStyle = "white";
+            ctx.fillStyle = "red";
             ctx.fillRect(0, 0, 1500, 880);
+
+            //Dibujar mapa
+            switch (mapLevel) {
+                case 1:
+                    ctx.fillStyle = "#42AD37";
+                    ctx.fillRect(0, 0, 1500, 880);
+                    for (let j=0;j<7;j++){
+                        for (let o=0;o<3;o++){
+                            drawSprite(roadSummer,0,0,64,64,(150+desplazamientoCarretera),(752-(j*128)),128,128);
+                        }
+                    }
+                    break;
+                case 2:
+                    ctx.fillStyle = "#EFB681";
+                    ctx.fillRect(0, 0, 1500, 880);
+                    drawSprite(roadDesert,0,0,64,64,150,752,128,128);
+                    break;
+                case 3:
+                    break;
+                default:break;
+            }
 
             //dibujar jugador
             drawSprite(playerSprite, player.w * player.frameX , player.h * player.frameY ,player.w,player.h,player.x,player.y,player.w,player.h);
@@ -203,6 +265,7 @@
                 drawSprite(carJeepBlue, enemy.w * enemy.frameX , enemy.h * enemy.frameY ,enemy.w,enemy.h,enemy.x,enemy.y,enemy.w,enemy.h);
             });
 
+            //Estado pause en el juego
             if (pause){
                 ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
                 ctx.fillRect(1, 1, 1498, 879);
@@ -212,6 +275,7 @@
                 ctx.fillText("P A U S A", 725, 350);
             }
 
+            //Mostrar estado de la música
             if (backgroundMusic.muted){
                 ctx.fillStyle = "black";
                 ctx.fillRect(1396,804,93,64);
@@ -222,6 +286,27 @@
                 ctx.drawImage(musicNotMuted,0,0,256,181,1400,808,85,56);
             }
 
+            //Mostrar tiempo
+            if (contadorMinutos<10){
+                tiempoTxt = "0"+contadorMinutos+":";
+                if (contadorSegundos<10){
+                    tiempoTxt+= "0"+contadorSegundos;
+                }else{
+                    tiempoTxt+= contadorSegundos;
+                }
+            }else{
+                tiempoTxt = contadorMinutos+":";
+                if (contadorSegundos<10){
+                    tiempoTxt+= "0"+contadorSegundos;
+                }else{
+                    tiempoTxt+= contadorSegundos;
+                }
+            }
+            ctx.fillStyle = "black"
+            ctx.font = "30px Arial";
+            ctx.fillText(tiempoTxt,10,860);
+            tiempoTxt = "";
+
             update();
             requestAnimationFrame(dibujar);
         };
@@ -229,7 +314,11 @@
 
         setInterval(function(){
             playerAnimation();
-        }, 100)
+        }, 100);
+
+        setInterval(function(){
+            tiempo();
+        },1000);
         
     </script>
 </body>
