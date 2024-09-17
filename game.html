@@ -17,12 +17,15 @@
         //Audio
         const streetTrafficSound = new Audio("audio/street-traffic-2.mp3");
         const golpeSound = new Audio('audio/jab-jab.mp3');
+        const chapuzonAguaSound = new Audio('audio/zambullir-zambullirse-agua-splash-.mp3');
         const backgroundMusic = new Audio('audio/donkey-kong-country.mp3');
         streetTrafficSound.loop = true;
         streetTrafficSound.muted = true;
         streetTrafficSound.volume = 0.2;
         golpeSound.volume = 0.3;
         golpeSound.muted = true;
+        chapuzonAguaSound.volume = 0.3;
+        chapuzonAguaSound.muted = true;
         backgroundMusic.loop = true;
         backgroundMusic.muted = true;
         backgroundMusic.volume = 0.4;
@@ -42,6 +45,7 @@
         const rioConBase = new Image();
         const rioConBasePiedras = new Image();
         const finishImg = new Image();
+        const heartImg = new Image();
         playerSprite.src = "img/ChickenWalkALLx2.png";
         carJeepBlue.src = "img/Blue_JEEP_CLEAN_8D_000-sheet.png";
         carJeepBlack.src = "img/Black_JEEP_CLEAN_8D_000-sheet.png";
@@ -56,22 +60,27 @@
         rioConBase.src = "img/Rio/AguaConBase.png";
         rioConBasePiedras.src = "img/Rio/AguaConBaseYPiedaras.png";
         finishImg.src = "img/SimbolosMapa/Finish.png";
+        heartImg.src = "img/heart.png";
 
         //Variables globales
         const keys = [];
-        let juegoTerminado = false;
         let pause = false;
         let direction = "";
-        let nivelActual = 1;
-        let isNivelTerminado = false;
         let enemys = []
         let rios = [];
+        let tiempoTotalSegundos = 0;
         let contadorSegundos = 0;
         let contadorMinutos = 0;
         let isTimeStop = false;
         let tiempoTxt = "";
         let mapLevel = 1;
-
+        
+        //VARIABLES VITALES PARA EL JUEGO
+        let nivelActual = 1;
+        let isNivelTerminado = false;
+        let selectMod = 0;
+        let juegoTerminado = false;
+        
         class Entidad {
             constructor(x,y,w,h,c,s,vida,tipo,frameX,frameY,moving) {
                 this.x = x;
@@ -91,23 +100,42 @@
                     this.x + this.w > objetivo.x   &&
                     this.y < objetivo.y + objetivo.h && 
                     this.y + this.h > objetivo.y) {
-                    return true;
-
-                    //Si entidad jugador choca con enemigo pierda una vida de 3
-                    if (this.tipo=="player" && objetivo.tipo=="enemy"){
-                        this.vida-=1;
-                        conVida();
-                    }
-                    if (this.tipo=="player" && objetivo.tipo=="meta"){
-                        isNivelTerminado = true;
-                    }
+                        return true;
                 }
                 return false;
             };
             
         }
-        const player = new Entidad(10,420,32,32,getRandomColor(),3,3,"player",0,0,false);
         const meta = new Entidad(1300,1,445,900,getRandomColor(),0,0,"meta",0,0,false);
+
+        class Jugador {
+            constructor(x,y,w,h,c,s,vida,tipo,frameX,frameY,moving,vD,cD) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.c = c;
+                this.s = s;
+                this.vida = vida;
+                this.frameX = frameX;
+                this.frameY = frameY;
+                this.moving = false;
+                this.vD = vD;
+                this.cD = cD;
+            }
+
+            estaTocando(objetivo){
+                if (this.x < objetivo.x + objetivo.w && 
+                    this.x + this.w > objetivo.x   &&
+                    this.y < objetivo.y + objetivo.h && 
+                    this.y + this.h > objetivo.y) {
+                        return true;
+                }
+                return false;
+            };
+            
+        }
+        const player = new Jugador(10,420,32,32,getRandomColor(),3,3,"player",0,0,false,16,10);
 
         class Rio {
             constructor(x,y,w,h,s,isSecure){
@@ -197,10 +225,12 @@
 
         function tiempo(){
             if (contadorSegundos<60 && !isTimeStop){
-                contadorSegundos+=1;
+                contadorSegundos++;
+                tiempoTotalSegundos++;
                 if (contadorSegundos==60){
                     contadorSegundos=0;
                     contadorMinutos+=1;
+                    tiempoTotalSegundos++;
                 }
             }
         }
@@ -214,11 +244,30 @@
             else player.frameX = 0;
         }
 
-        function finalizarNivelActual(){
-            if (isNivelTerminado){
-                nivelActual++;
+        function addModToPlayer(modSelected){
+            switch (modSelected) {
+                case 1: // aumenta 2pts la velocidad
+                    console.log("Se selecciono modificador 1");
+                    player.s+=2;
+                    player.x=10;//Reinicia la posicion del jugador
+                    player.y=420;//Reinicia la posicion del jugador
+                    console.log(player.s);
+                    nivelActual++;
+                    isNivelTerminado=false;
+                    break;
+                case 2:// Suma una vida
+                    console.log("Se selecciono modificador 2");
+                    player.vida++;
+                    break;
+                case 3:// mejora la distancia del dash
+                    console.log("Se selecciono modificador 3");
+                    break;
+                case 4:// mejora la velocidad de recuperacion del dash
+                    console.log("Se selecciono modificador 4");
+                    break;
+                default:break;
             }
-        }
+        };
 
         document.addEventListener('keydown', (e) => {
             keys[e.keyCode] = true;
@@ -236,6 +285,7 @@
                 streetTrafficSound.muted = !streetTrafficSound.muted;
                 streetTrafficSound.play();
 
+                chapuzonAguaSound.muted = !chapuzonAguaSound.muted;
                 golpeSound.muted = !golpeSound.muted;
             }
             console.log("Código: "+e.keyCode); ///////////////Eliminar al finalizar
@@ -265,15 +315,55 @@
             }
         }
 
-        enemysLevelOne();
+        function gameOptions(x,y){
+            if (isNivelTerminado){
+                switch (nivelActual) {
+                    case 1:
+                    case 2: //150+(w*320),550,300,100
+                        if (x>=150 && y>=550 &&
+                            x<=450 && y<=650){
+                            console.log("Modificador 1")
+                            addModToPlayer(1);
+                        }
+                        if (x>=470 && y>=550 &&
+                            x<=770 && y<=650){
+                            console.log("Modificador 2")
+                            addModToPlayer(2);
+                        }
+                        if (x>=790 && y>=550 &&
+                            x<=1090 && y<=650){
+                            console.log("Modificador 3")
+                            addModToPlayer(3);
+                        }
+                        if (x>=1110 && y>=550 &&
+                            x<=1410 && y<=650){
+                            console.log("Modificador 4")
+                            addModToPlayer(4);
+                        }
+                        break;
+                    case 3:
+                        if (x>=625 && y>=600 &&
+                            x<=825 && y<=670){ //625,600,200,70
+                            window.location = "index.html";
+                        }
+                        break;
+                    default:break;
+                }
+            }
+        };
 
+        addEventListener("mousedown", (e) => {
+            console.log(e.offsetX+", "+e.offsetY);
+            gameOptions(e.offsetX,e.offsetY);
+        })
+
+        enemysLevelOne();
+        
         function update(){
-            if (pause){
+            if (pause || juegoTerminado){
                 //Se detienen los movimientos
-                movePlayer();
             }else {
                 movePlayer();
-
                 //Movimiento de los enemigos
                 enemys.forEach(enemy => {
                     enemy.y-=enemy.s;
@@ -299,7 +389,7 @@
             enemys.forEach(enemy => {
                 if (player.estaTocando(enemy)) {
                     golpeSound.play();
-                    if (player.vida === 1){
+                    if (player.vida==0){
                         juegoTerminado=true;
                         console.log("El jugador perdió todas sus vidas");
                     }else{
@@ -320,16 +410,25 @@
                             player.y += drawRio.s;
                         }
                     }else{
-                        console.log("Vida del jugador: "+(player.vida-1))
-                        player.vida-=1;
-                        player.x=10;//Reinicia la posicion del jugador
-                        player.y=420;//Reinicia la posicion del jugador
+                        if (player.vida==0){
+                            juegoTerminado=true;
+                            console.log("El jugador perdió todas sus vidas");
+                        }else{
+                            console.log("Vida del jugador: "+(player.vida-1))
+                            player.vida-=1;
+                            player.x=10;//Reinicia la posicion del jugador
+                            player.y=420;//Reinicia la posicion del jugador
+                            chapuzonAguaSound.pause();
+                            chapuzonAguaSound.play();
+                        }
                     }
                 }
             });
 
             //Verificar que el jugador toque la meta
-            player.estaTocando(meta);
+            if (player.estaTocando(meta)){
+                isNivelTerminado = true;
+            };
             
         }
 
@@ -391,7 +490,7 @@
             drawSprite(finishImg,0,0,445,1430,meta.x,meta.y,meta.w,meta.h);
 
             //Estado pause en el juego
-            if (pause && !isNivelTerminado){
+            if (pause){
                 ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
                 ctx.fillRect(1, 1, 1498, 879);
 
@@ -432,12 +531,85 @@
             ctx.fillText(tiempoTxt,10,860);
             tiempoTxt = "";
 
+            //Estadisticas de jugador
+            ctx.fillStyle = "black"
+            ctx.font = "20px Arial";
+            ctx.fillText("Velocidad: "+player.s,10,30);
+            ctx.fillText("Dash: "+player.vD,10,60);
+            ctx.fillText("Enfriamiento: "+player.cD,10,90);
+            ctx.fillText("Vidas: ",10,120);
+            for (let g=0;g<player.vida;g++){
+                drawSprite(heartImg,0,0,128,128,5+(g*35),125,32,32);  
+            };
+            
+            //JUGADOR PERDIO TODAS SUS VIDAS
+            if (juegoTerminado){ 
+
+            };
+
             //Mostrar pantalla de nivel terminado
             if (isNivelTerminado){
                 ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
                 ctx.fillRect(1, 1, 1498, 879);
-                console.log("NIVEL ACABDOCJHBYCKEKB");
-            }
+
+                ctx.font = "50px Fantasy";
+                ctx.fillStyle = "white"
+                ctx.fillText("¡¡Nivel "+nivelActual+" terminado!!",542,300);
+                if (nivelActual != 3){
+                    ctx.font = "30px Fantasy";
+                    ctx.fillText("Elige un modificador para continuar hacia el nivel "+(nivelActual+1),440,370);
+                    switch (selectMod) {
+                        case 0:
+                            console.log("ESPERANDO SELECCION....");
+                            for (let w=0;w<4;w++){
+                                ctx.fillStyle = "black";
+                                ctx.strokeStyle = "white";
+                                ctx.fillRect(150+(w*320),550,300,100);
+                                ctx.strokeRect(150+(w*320),550,300,100);
+
+                                ctx.fillStyle = "white"
+                                ctx.font = "30px Fantasy";
+                                ctx.fillText("Modificador "+(w+1)+": ",160+(w*320),580);
+                            }
+                            ctx.font = "20px Fantasy";
+                            ctx.fillText("Aumenta 2 pts de velocidad",190,620);
+
+                            ctx.font = "20px Fantasy";
+                            ctx.fillText("Recupera 1 pt de vida",535,620);
+
+                            ctx.font = "20px Fantasy";
+                            ctx.fillText("Mejora la distancia del DASH",825,620);
+
+                            ctx.font = "20px Fantasy";
+                            ctx.fillText("Disminuye el enfriamiento del DASH",1114,620);
+                            break;
+                        case 1:
+                            break;
+                        case 2:
+                            break;
+                        case 3:
+                            break;
+                        case 4:
+                            break;
+                        default:break;
+                    }
+                }else{
+                    ctx.font = "70px Fantasy";
+                    ctx.strokeStyle = getRandomColor();
+                    ctx.fillStyle = "white";
+                    ctx.fillText("JUEGO SUPERADO",500,500);
+                    ctx.strokeText("JUEGO SUPERADO",500+getRandomInt(1,2),500);
+
+                    ctx.fillStyle = "black";
+                    ctx.strokeStyle = "white";
+                    ctx.fillRect(625,600,200,70);
+                    ctx.strokeRect(625,600,200,70);
+
+                    ctx.fillStyle = "white"
+                    ctx.font = "italic 30px Fantasy";
+                    ctx.fillText("Volver al menú",630,643);
+                };
+            };
 
 
             update();
