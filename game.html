@@ -729,8 +729,6 @@
 
             //dibujar enemigos
             enemys.forEach(enemy => {
-                ctx.strokeStyle = "red"; //Hitbox
-                ctx.strokeRect(enemy.x,enemy.y,enemy.w,enemy.h);
                 drawSprite(carJeepBlue, enemy.w * enemy.frameX , enemy.h * enemy.frameY ,enemy.w,enemy.h,enemy.x,enemy.y,enemy.w,enemy.h);
             });
 
