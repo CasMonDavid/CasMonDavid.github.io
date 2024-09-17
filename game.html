@@ -21,7 +21,7 @@
         streetTrafficSound.loop = true;
         streetTrafficSound.muted = true;
         streetTrafficSound.volume = 0.2;
-        golpeSound.volume = 1;
+        golpeSound.volume = 0.3;
         golpeSound.muted = true;
         backgroundMusic.loop = true;
         backgroundMusic.muted = true;
@@ -41,6 +41,7 @@
         const rioSinBase = new Image();
         const rioConBase = new Image();
         const rioConBasePiedras = new Image();
+        const finishImg = new Image();
         playerSprite.src = "img/ChickenWalkALLx2.png";
         carJeepBlue.src = "img/Blue_JEEP_CLEAN_8D_000-sheet.png";
         carJeepBlack.src = "img/Black_JEEP_CLEAN_8D_000-sheet.png";
@@ -54,13 +55,15 @@
         rioSinBase.src = "img/Rio/Agua.png";
         rioConBase.src = "img/Rio/AguaConBase.png";
         rioConBasePiedras.src = "img/Rio/AguaConBaseYPiedaras.png";
+        finishImg.src = "img/SimbolosMapa/Finish.png";
 
         //Variables globales
         const keys = [];
         let juegoTerminado = false;
         let pause = false;
         let direction = "";
-        let nivel = 1;
+        let nivelActual = 1;
+        let isNivelTerminado = false;
         let enemys = []
         let rios = [];
         let contadorSegundos = 0;
@@ -95,12 +98,16 @@
                         this.vida-=1;
                         conVida();
                     }
+                    if (this.tipo=="player" && objetivo.tipo=="meta"){
+                        isNivelTerminado = true;
+                    }
                 }
                 return false;
             };
             
         }
         const player = new Entidad(10,420,32,32,getRandomColor(),3,3,"player",0,0,false);
+        const meta = new Entidad(1300,1,445,900,getRandomColor(),0,0,"meta",0,0,false);
 
         class Rio {
             constructor(x,y,w,h,s,isSecure){
@@ -133,34 +140,43 @@
             let numeroAleatorio = 0;
             let velocidadFila = 0;
             let velocidadFilaPast = 0;
-            for(let i=0;i<=5;i++){
-                if ((i%2)==0){
-                    enemy = new Entidad((166+(desplazamiento*i)),850,44,57,getRandomColor(),getRandomInt(1,7),-1,"enemy",0.65,3.95,true);
-                }else{
-                    enemy = new Entidad((166+(desplazamiento*i)),850,44,57,getRandomColor(),(getRandomInt(1,7)*-1),-1,"enemy",5.2,0.41,true);
-                }
-                enemys.push(enemy);
-            }
-            for (let j=0;j<2;j++){
-                velocidadFilaPast = velocidadFila;
-                while(velocidadFila==velocidadFilaPast){
+            let orientacion = 1;
+            for (let h=0;h<2;h++){
+                for(let i=0;i<=5;i++){
+                    if ((i%2)==0){
+                        enemy = new Entidad((h>0)? (166+(desplazamiento*i)):((166+(desplazamiento*i))+770),850,44,57,getRandomColor(),getRandomInt(1,7),-1,"enemy",0.65,3.95,true);
+                    }else{
+                        enemy = new Entidad((h>0)? (166+(desplazamiento*i)):((166+(desplazamiento*i))+770),850,44,57,getRandomColor(),(getRandomInt(1,7)*-1),-1,"enemy",5.2,0.41,true);
+                    }
+                    enemys.push(enemy);
+                };
+            };
+            
+            for (let j=0;j<7;j++){
+                velocidadFila = 2;
+                //velocidadFilaPast = 3;
+                /*while(velocidadFila==velocidadFilaPast){
                     velocidadFila = getRandomInt(2,4);
                     console.log("Se cambiaron las mismas velocidades")
                 }
-                velocidadFilaPast = velocidadFila;
+                velocidadFilaPast = velocidadFila;*/
                 for (let t=0;t<13;t++){
                     switch (numeroAleatorio) {
                         case 0:
-                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,velocidadFila,true);
-                            break;
                         case 1:
-                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,velocidadFila,false);
+                            //newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 2:
+                            //newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
                             break;
                         default:break;
                     }
-                    numeroAleatorio = getRandomInt(0,1);
+                    numeroAleatorio = getRandomInt(0,2);
                     rios.push(newRio);
                 }
+                orientacion = orientacion*-1;
             }
         };
 
@@ -196,6 +212,12 @@
         function playerAnimation(){
             if (player.frameX < 3 && player.moving) player.frameX++
             else player.frameX = 0;
+        }
+
+        function finalizarNivelActual(){
+            if (isNivelTerminado){
+                nivelActual++;
+            }
         }
 
         document.addEventListener('keydown', (e) => {
@@ -248,6 +270,7 @@
         function update(){
             if (pause){
                 //Se detienen los movimientos
+                movePlayer();
             }else {
                 movePlayer();
 
@@ -292,7 +315,7 @@
             rios.forEach(drawRio => {
                 if (player.estaTocando(drawRio)){
                     if (drawRio.isSecure){
-                        player.y-=drawRio.s;
+                        //player.y-=drawRio.s;
                         if (player.y < 0){
                             player.y += drawRio.s;
                         }
@@ -304,6 +327,9 @@
                     }
                 }
             });
+
+            //Verificar que el jugador toque la meta
+            player.estaTocando(meta);
             
         }
 
@@ -313,27 +339,30 @@
             ctx.fillRect(0, 0, 1500, 880);
 
             //Dibujar mapa
-            switch (mapLevel) {
+            switch (nivelActual) {
                 case 1:
                     ctx.fillStyle = "#42AD37";
                     ctx.fillRect(0, 0, 1500, 880);
                     //carreteras
-                    for (let j=0;j<7;j++){
-                        drawSprite(roadSummer,0,0,64,64,150,(752-(j*128)),128,128);
-                    }
-                    for (let j=0;j<7;j++){
-                        drawSprite(roadSummerSinPasto,0,0,64,64,260,(752-(j*128)),128,128);
-                    }
-                    for (let j=0;j<7;j++){
-                        drawSprite(roadSummerSinPasto,0,0,64,64,355,(752-(j*128)),128,128);
-                    }
+                    for (let y=0;y<2;y++){
+                        for (let j=0;j<7;j++){
+                        drawSprite(roadSummer,0,0,64,64,(y>0)? 150:(150+770),(752-(j*128)),128,128);
+                        }
+                        for (let j=0;j<7;j++){
+                            drawSprite(roadSummerSinPasto,0,0,64,64,(y>0)? 260:(260+770),(752-(j*128)),128,128);
+                        }
+                        for (let j=0;j<7;j++){
+                            drawSprite(roadSummerSinPasto,0,0,64,64,(y>0)? 355:(355+770),(752-(j*128)),128,128);
+                        }
+                    };
+                    
                     //Rios
                     rios.forEach(drawRio => {
                         if (drawRio.isSecure){
                             drawSprite(rioConBase,0,0,drawRio.w,drawRio.h,drawRio.x,drawRio.y,drawRio.w,drawRio.h);
                         }else{
                             drawSprite(rioSinBase,0,0,drawRio.w,drawRio.h,drawRio.x,drawRio.y,drawRio.w,drawRio.h);
-                        }
+                        };
                     });
                     break;
                 case 2:
@@ -344,7 +373,7 @@
                 case 3:
                     break;
                 default:break;
-            }
+            };
 
             //dibujar jugador
             drawSprite(playerSprite, player.w * player.frameX , player.h * player.frameY ,player.w,player.h,player.x,player.y,player.w,player.h);
@@ -356,15 +385,20 @@
                 drawSprite(carJeepBlue, enemy.w * enemy.frameX , enemy.h * enemy.frameY ,enemy.w,enemy.h,enemy.x,enemy.y,enemy.w,enemy.h);
             });
 
+            //Dibuja la linea de meta
+            ctx.strokeStyle = "black";
+            ctx.strokeRect(meta.x,meta.y,meta.w,meta.h);
+            drawSprite(finishImg,0,0,445,1430,meta.x,meta.y,meta.w,meta.h);
+
             //Estado pause en el juego
-            if (pause){
+            if (pause && !isNivelTerminado){
                 ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
                 ctx.fillRect(1, 1, 1498, 879);
 
                 ctx.fillStyle = "black";
                 ctx.font = "30px Arial";
                 ctx.fillText("P A U S A", 725, 350);
-            }
+            };
 
             //Mostrar estado de la música
             if (backgroundMusic.muted){
@@ -375,7 +409,7 @@
                 ctx.fillStyle = "black";
                 ctx.fillRect(1396,804,93,64);
                 ctx.drawImage(musicNotMuted,0,0,256,181,1400,808,85,56);
-            }
+            };
 
             //Mostrar tiempo
             if (contadorMinutos<10){
@@ -397,6 +431,14 @@
             ctx.font = "30px Arial";
             ctx.fillText(tiempoTxt,10,860);
             tiempoTxt = "";
+
+            //Mostrar pantalla de nivel terminado
+            if (isNivelTerminado){
+                ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+                ctx.fillRect(1, 1, 1498, 879);
+                console.log("NIVEL ACABDOCJHBYCKEKB");
+            }
+
 
             update();
             requestAnimationFrame(dibujar);
