@@ -316,6 +316,16 @@
         }
 
         function gameOptions(x,y){
+            if (juegoTerminado){ 
+                if (x>=580 && y>=400 &&
+                    x<=880 && y<=460){ //580,400,300,60
+                    window.location = "game.html";
+                };
+                if (x>=615 && y>=550 &&
+                    x<=855 && y<=610){//615,550,240,60
+                        window.location = "index.html";
+                }
+            };
             if (isNivelTerminado){
                 switch (nivelActual) {
                     case 1:
@@ -358,7 +368,7 @@
         })
 
         enemysLevelOne();
-        
+
         function update(){
             if (pause || juegoTerminado){
                 //Se detienen los movimientos
@@ -544,7 +554,30 @@
             
             //JUGADOR PERDIO TODAS SUS VIDAS
             if (juegoTerminado){ 
+                ctx.fillStyle = "rgb(0, 0, 0)";
+                ctx.fillRect(1, 1, 1498, 878);
 
+                ctx.font = "50px Fantasy";
+                ctx.fillStyle = "white"
+                ctx.fillText("Derrota.",640,300);
+
+                ctx.fillStyle = "black";
+                ctx.strokeStyle = "white";
+                ctx.fillRect(580,400,300,60);
+                ctx.strokeRect(580,400,300,60);
+
+                ctx.fillStyle = "white"
+                ctx.font = "italic 30px Fantasy";
+                ctx.fillText("¿Volver a intentar?",615,440);
+
+                ctx.fillStyle = "black";
+                ctx.strokeStyle = "white";
+                ctx.fillRect(615,550,240,60);
+                ctx.strokeRect(615,550,240,60);
+
+                ctx.fillStyle = "white"
+                ctx.font = "italic 30px Fantasy";
+                ctx.fillText("Ir al menú",670,590);
             };
 
             //Mostrar pantalla de nivel terminado
