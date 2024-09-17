@@ -41,6 +41,7 @@
         const roadSummerSinPasto = new Image();
         const roadDesert = new Image();
         const roadWinter = new Image();
+        const roadWinterSinPasto = new Image();
         const rioSinBase = new Image();
         const rioConBase = new Image();
         const rioConBasePiedras = new Image();
@@ -61,6 +62,7 @@
         rioConBasePiedras.src = "img/Rio/AguaConBaseYPiedaras.png";
         finishImg.src = "img/SimbolosMapa/Finish.png";
         heartImg.src = "img/heart.png";
+        roadWinterSinPasto.src = "img/Carreteras/Winter_road_SinNieve (64 x 64).png";
 
         //Variables globales
         const keys = [];
@@ -74,10 +76,9 @@
         let contadorMinutos = 0;
         let isTimeStop = false;
         let tiempoTxt = "";
-        let mapLevel = 1;
         
         //VARIABLES VITALES PARA EL JUEGO
-        let nivelActual = 2;
+        let nivelActual = 3;
         let isNivelTerminado = false;
         let selectMod = 0;
         let juegoTerminado = false;
@@ -214,33 +215,103 @@
             let velocidadFila = 0;
             let velocidadFilaPast = 0;
             let orientacion = 1;
-            for (let h=0;h<2;h++){
-                for(let i=0;i<=5;i++){
+            //GENERADOR DE VEHICULOS 
+            for (let h=0;h<3;h++){
+                for(let i=0;i<4;i++){
                     if ((i%2)==0){
-                        enemy = new Entidad((h>0)? (166+(desplazamiento*i)):((166+(desplazamiento*i))+770),850,44,57,getRandomColor(),getRandomInt(1,7),-1,"enemy",0.65,3.95,true);
+                        enemy = new Entidad((166+(i*48))+(h*250),850,44,57,getRandomColor(),getRandomInt(2,8),-1,"enemy",0.65,3.95,true);
                     }else{
-                        enemy = new Entidad((h>0)? (166+(desplazamiento*i)):((166+(desplazamiento*i))+770),850,44,57,getRandomColor(),(getRandomInt(1,7)*-1),-1,"enemy",5.2,0.41,true);
+                        enemy = new Entidad((166+(i*48))+(h*250),850,44,57,getRandomColor(),(getRandomInt(2,8)*-1),-1,"enemy",5.2,0.41,true);
                     }
                     enemys.push(enemy);
                 };
             };
+            //GENERADOR DE RIOS
+            velocidadFila = getRandomInt(1,2);
+            for (let t=0;t<13;t++){
+                switch (numeroAleatorio) {
+                        case 0:
+                            newRio = new Rio(358,(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 1:
+                            newRio = new Rio(358,(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                }
+                numeroAleatorio = getRandomInt(0,1);
+                rios.push(newRio);
+            }
             
             for (let j=0;j<7;j++){
-                velocidadFila = getRandomInt(2,3);
+                velocidadFila = getRandomInt(1,2);
                 for (let t=0;t<13;t++){
                     switch (numeroAleatorio) {
                         case 0:
-                        case 1:
-                            //newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
-                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            newRio = new Rio((858+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
                             break;
-                        case 2:
-                            //newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
-                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                        case 1:
+                            newRio = new Rio((858+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
                             break;
                         default:break;
                     }
-                    numeroAleatorio = getRandomInt(0,2);
+                    numeroAleatorio = getRandomInt(0,1);
+                    rios.push(newRio);
+                }
+                orientacion = orientacion*-1;
+            }
+        };
+
+        function enemysLevelThree(){
+            console.log("SE DESPLEGARON LOS ENEMIGOS NIVEL 2")
+            enemys.length = 0;
+            rios.length = 0;
+            let desplazamiento = 48;
+            let enemy;
+            let newRio;
+            let numeroAleatorio = 0;
+            let velocidadFila = 0;
+            let velocidadFilaPast = 0;
+            let orientacion = 1;
+            //GENERADOR DE VEHICULOS 
+            for (let h=0;h<3;h++){
+                for(let i=0;i<4;i++){
+                    if ((i%2)==0){
+                        enemy = new Entidad((166+(i*48))+(h*250),850,44,57,getRandomColor(),getRandomInt(2,8),-1,"enemy",0.65,3.95,true);
+                    }else{
+                        enemy = new Entidad((166+(i*48))+(h*250),850,44,57,getRandomColor(),(getRandomInt(2,8)*-1),-1,"enemy",5.2,0.41,true);
+                    }
+                    enemys.push(enemy);
+                };
+            };
+            //GENERADOR DE RIOS
+            velocidadFila = getRandomInt(1,2);
+            for (let t=0;t<13;t++){
+                switch (numeroAleatorio) {
+                        case 0:
+                            newRio = new Rio(358,(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 1:
+                            newRio = new Rio(358,(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                }
+                numeroAleatorio = getRandomInt(0,1);
+                rios.push(newRio);
+            }
+            
+            for (let j=0;j<7;j++){
+                velocidadFila = getRandomInt(1,2);
+                for (let t=0;t<13;t++){
+                    switch (numeroAleatorio) {
+                        case 0:
+                            newRio = new Rio((858+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 1:
+                            newRio = new Rio((858+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                    }
+                    numeroAleatorio = getRandomInt(0,1);
                     rios.push(newRio);
                 }
                 orientacion = orientacion*-1;
@@ -296,7 +367,7 @@
                             enemysLevelTwo();
                             break;
                         case 3:
-                            
+                            enemysLevelThree();
                             break;
                         default:break;
                     };
@@ -307,6 +378,15 @@
                     player.y=420;//Reinicia la posicion del jugador
                     nivelActual++;
                     isNivelTerminado=false;
+                    switch (nivelActual) {
+                        case 2:
+                            enemysLevelTwo();
+                            break;
+                        case 3:
+                            enemysLevelThree();
+                            break;
+                        default:break;
+                    };
                     break;
                 case 3:// mejora la distancia del dash
                     player.vD+=32;
@@ -314,6 +394,15 @@
                     player.y=420;//Reinicia la posicion del jugador
                     nivelActual++;
                     isNivelTerminado=false;
+                    switch (nivelActual) {
+                        case 2:
+                            enemysLevelTwo();
+                            break;
+                        case 3:
+                            enemysLevelThree();
+                            break;
+                        default:break;
+                    };
                     break;
                 case 4:// mejora la velocidad de recuperacion del dash
                     player.cD-=3;
@@ -321,6 +410,15 @@
                     player.y=420;//Reinicia la posicion del jugador
                     nivelActual++;
                     isNivelTerminado=false;
+                    switch (nivelActual) {
+                        case 2:
+                            enemysLevelTwo();
+                            break;
+                        case 3:
+                            
+                            break;
+                        default:break;
+                    };
                     break;
                 default:break;
             }
@@ -452,7 +550,7 @@
             gameOptions(e.offsetX,e.offsetY);
         })
 
-        enemysLevelOne();
+        enemysLevelThree();
 
         function update(){
             if (pause || juegoTerminado){
@@ -581,6 +679,14 @@
                     });
                     break;
                 case 3:
+                    ctx.fillStyle = "#F0EEEC";
+                    ctx.fillRect(0, 0, 1500, 880);
+                    //carreteras
+                    for (let y=0;y<3;y++){
+                        for (let j=0;j<7;j++){
+                            drawSprite(roadWinter,0,0,64,64,260+(y*250),(752-(j*128)),128,128);
+                        };
+                    };
                     break;
                 default:break;
             };
