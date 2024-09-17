@@ -69,6 +69,7 @@
         let enemys = []
         let rios = [];
         let tiempoTotalSegundos = 0;
+        let tiempoTotalSegundosMasCooldown = 0;
         let contadorSegundos = 0;
         let contadorMinutos = 0;
         let isTimeStop = false;
@@ -76,7 +77,7 @@
         let mapLevel = 1;
         
         //VARIABLES VITALES PARA EL JUEGO
-        let nivelActual = 1;
+        let nivelActual = 2;
         let isNivelTerminado = false;
         let selectMod = 0;
         let juegoTerminado = false;
@@ -135,7 +136,7 @@
             };
             
         }
-        const player = new Jugador(10,420,32,32,getRandomColor(),3,3,"player",0,0,false,16,10);
+        const player = new Jugador(10,420,32,32,getRandomColor(),3,3,"player",0,0,false,32,10);
 
         class Rio {
             constructor(x,y,w,h,s,isSecure){
@@ -181,13 +182,51 @@
             };
             
             for (let j=0;j<7;j++){
-                velocidadFila = 2;
-                //velocidadFilaPast = 3;
-                /*while(velocidadFila==velocidadFilaPast){
-                    velocidadFila = getRandomInt(2,4);
-                    console.log("Se cambiaron las mismas velocidades")
+                velocidadFila = getRandomInt(2,3);
+                for (let t=0;t<13;t++){
+                    switch (numeroAleatorio) {
+                        case 0:
+                        case 1:
+                            //newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 2:
+                            //newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            newRio = new Rio((500+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                    }
+                    numeroAleatorio = getRandomInt(0,2);
+                    rios.push(newRio);
                 }
-                velocidadFilaPast = velocidadFila;*/
+                orientacion = orientacion*-1;
+            }
+        };
+
+        function enemysLevelTwo(){
+            console.log("SE DESPLEGARON LOS ENEMIGOS NIVEL 2")
+            enemys.length = 0;
+            rios.length = 0;
+            let desplazamiento = 48;
+            let enemy;
+            let newRio;
+            let numeroAleatorio = 0;
+            let velocidadFila = 0;
+            let velocidadFilaPast = 0;
+            let orientacion = 1;
+            for (let h=0;h<2;h++){
+                for(let i=0;i<=5;i++){
+                    if ((i%2)==0){
+                        enemy = new Entidad((h>0)? (166+(desplazamiento*i)):((166+(desplazamiento*i))+770),850,44,57,getRandomColor(),getRandomInt(1,7),-1,"enemy",0.65,3.95,true);
+                    }else{
+                        enemy = new Entidad((h>0)? (166+(desplazamiento*i)):((166+(desplazamiento*i))+770),850,44,57,getRandomColor(),(getRandomInt(1,7)*-1),-1,"enemy",5.2,0.41,true);
+                    }
+                    enemys.push(enemy);
+                };
+            };
+            
+            for (let j=0;j<7;j++){
+                velocidadFila = getRandomInt(2,3);
                 for (let t=0;t<13;t++){
                     switch (numeroAleatorio) {
                         case 0:
@@ -247,23 +286,41 @@
         function addModToPlayer(modSelected){
             switch (modSelected) {
                 case 1: // aumenta 2pts la velocidad
-                    console.log("Se selecciono modificador 1");
                     player.s+=2;
                     player.x=10;//Reinicia la posicion del jugador
                     player.y=420;//Reinicia la posicion del jugador
-                    console.log(player.s);
+                    nivelActual++;
+                    isNivelTerminado=false;
+                    switch (nivelActual) {
+                        case 2:
+                            enemysLevelTwo();
+                            break;
+                        case 3:
+                            
+                            break;
+                        default:break;
+                    };
+                    break;
+                case 2:// Suma una vida
+                    player.vida++;
+                    player.x=10;//Reinicia la posicion del jugador
+                    player.y=420;//Reinicia la posicion del jugador
                     nivelActual++;
                     isNivelTerminado=false;
                     break;
-                case 2:// Suma una vida
-                    console.log("Se selecciono modificador 2");
-                    player.vida++;
-                    break;
                 case 3:// mejora la distancia del dash
-                    console.log("Se selecciono modificador 3");
+                    player.vD+=32;
+                    player.x=10;//Reinicia la posicion del jugador
+                    player.y=420;//Reinicia la posicion del jugador
+                    nivelActual++;
+                    isNivelTerminado=false;
                     break;
                 case 4:// mejora la velocidad de recuperacion del dash
-                    console.log("Se selecciono modificador 4");
+                    player.cD-=3;
+                    player.x=10;//Reinicia la posicion del jugador
+                    player.y=420;//Reinicia la posicion del jugador
+                    nivelActual++;
+                    isNivelTerminado=false;
                     break;
                 default:break;
             }
@@ -272,7 +329,7 @@
         document.addEventListener('keydown', (e) => {
             keys[e.keyCode] = true;
             player.moving = true;
-            if (keys[32]){
+            if (keys[80]){
                 pause = !pause;
                 isTimeStop = !isTimeStop;
             }
@@ -296,26 +353,54 @@
             player.moving = false;
         });
 
+        function isInCooldown(){
+            if (tiempoTotalSegundosMasCooldown>tiempoTotalSegundos){
+                return false;
+            }else{
+                tiempoTotalSegundosMasCooldown+=player.cD;
+                console.log("Hice un dash");
+                return true;
+            }
+        }
+
         function movePlayer(){
             if (keys[38] && player.y > 0){
                 player.y -= player.s;
                 player.frameY=1;
+                if (keys[32] && isInCooldown()){
+                    player.y-=player.vD;
+                }
             }
             if (keys[40] && player.y < 850){
                 player.y += player.s;
                 player.frameY=0;
+                if (keys[32] && isInCooldown()){
+                    player.y+=player.vD;
+                }
             }
             if (keys[37] && player.x > 0){
                 player.x -= player.s;
                 player.frameY=2;
+                if (keys[32] && isInCooldown()){
+                    player.x-=player.vD;
+                }
             }
             if (keys[39] && player.x < 1470){
                 player.x += player.s;
                 player.frameY=3;
+                if (keys[32] && isInCooldown()){
+                    player.x+=player.vD;
+                }
             }
         }
 
         function gameOptions(x,y){
+            if (pause && !juegoTerminado){//612,400,230,60
+                if (x>=612 && y>=400 &&
+                    x<=842 && y<=460){
+                    window.location = "index.html";
+                };
+            }
             if (juegoTerminado){ 
                 if (x>=580 && y>=400 &&
                     x<=880 && y<=460){ //580,400,300,60
@@ -323,7 +408,7 @@
                 };
                 if (x>=615 && y>=550 &&
                     x<=855 && y<=610){//615,550,240,60
-                        window.location = "index.html";
+                    window.location = "index.html";
                 }
             };
             if (isNivelTerminado){
@@ -443,7 +528,7 @@
         }
 
         function dibujar(){
-            //fondo blanco
+            //fondo rojo
             ctx.fillStyle = "red";
             ctx.fillRect(0, 0, 1500, 880);
 
@@ -477,7 +562,23 @@
                 case 2:
                     ctx.fillStyle = "#EFB681";
                     ctx.fillRect(0, 0, 1500, 880);
-                    drawSprite(roadDesert,0,0,64,64,150,752,128,128);
+                    //carreteras
+                    for (let y=0;y<3;y++){
+                        for (let j=0;j<7;j++){
+                            drawSprite(roadDesert,0,0,64,64,150+(y*250),(752-(j*128)),128,128);
+                        };
+                        for (let j=0;j<7;j++){
+                            drawSprite(roadSummerSinPasto,0,0,64,64,260+(y*250),(752-(j*128)),128,128);
+                        };
+                    };
+                    //Rios
+                    rios.forEach(drawRio => {
+                        if (drawRio.isSecure){
+                            drawSprite(rioConBase,0,0,drawRio.w,drawRio.h,drawRio.x,drawRio.y,drawRio.w,drawRio.h);
+                        }else{
+                            drawSprite(rioSinBase,0,0,drawRio.w,drawRio.h,drawRio.x,drawRio.y,drawRio.w,drawRio.h);
+                        };
+                    });
                     break;
                 case 3:
                     break;
@@ -500,13 +601,22 @@
             drawSprite(finishImg,0,0,445,1430,meta.x,meta.y,meta.w,meta.h);
 
             //Estado pause en el juego
-            if (pause){
-                ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            if (pause && !juegoTerminado){
+                ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
                 ctx.fillRect(1, 1, 1498, 879);
 
-                ctx.fillStyle = "black";
+                ctx.fillStyle = "white";
                 ctx.font = "30px Arial";
-                ctx.fillText("P A U S A", 725, 350);
+                ctx.fillText("P A U S A", 660, 350);
+
+                ctx.fillStyle = "white";
+                ctx.strokeStyle = "black";
+                ctx.fillRect(612,400,230,60);
+                ctx.strokeRect(612,400,230,60);
+
+                ctx.fillStyle = "black"
+                ctx.font = "italic 30px Fantasy";
+                ctx.fillText("Ir al menú",665,440);
             };
 
             //Mostrar estado de la música
