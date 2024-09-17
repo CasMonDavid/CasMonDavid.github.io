@@ -78,7 +78,7 @@
         let tiempoTxt = "";
         
         //VARIABLES VITALES PARA EL JUEGO
-        let nivelActual = 3;
+        let nivelActual = 1;
         let isNivelTerminado = false;
         let selectMod = 0;
         let juegoTerminado = false;
@@ -205,7 +205,6 @@
         };
 
         function enemysLevelTwo(){
-            console.log("SE DESPLEGARON LOS ENEMIGOS NIVEL 2")
             enemys.length = 0;
             rios.length = 0;
             let desplazamiento = 48;
@@ -262,7 +261,6 @@
         };
 
         function enemysLevelThree(){
-            console.log("SE DESPLEGARON LOS ENEMIGOS NIVEL 2")
             enemys.length = 0;
             rios.length = 0;
             let desplazamiento = 48;
@@ -274,40 +272,77 @@
             let orientacion = 1;
             //GENERADOR DE VEHICULOS 
             for (let h=0;h<3;h++){
-                for(let i=0;i<4;i++){
+                for(let i=0;i<2;i++){
                     if ((i%2)==0){
-                        enemy = new Entidad((166+(i*48))+(h*250),850,44,57,getRandomColor(),getRandomInt(2,8),-1,"enemy",0.65,3.95,true);
+                        enemy = new Entidad((278+(i*48))+(h*250),850,44,57,getRandomColor(),getRandomInt(2,8),-1,"enemy",0.65,3.95,true);
                     }else{
-                        enemy = new Entidad((166+(i*48))+(h*250),850,44,57,getRandomColor(),(getRandomInt(2,8)*-1),-1,"enemy",5.2,0.41,true);
+                        enemy = new Entidad((278+(i*48))+(h*250),850,44,57,getRandomColor(),(getRandomInt(2,8)*-1),-1,"enemy",5.2,0.41,true);
                     }
                     enemys.push(enemy);
                 };
             };
             //GENERADOR DE RIOS
-            velocidadFila = getRandomInt(1,2);
-            for (let t=0;t<13;t++){
-                switch (numeroAleatorio) {
-                        case 0:
-                            newRio = new Rio(358,(0+(100*t)),50,100,(velocidadFila*orientacion),true);
-                            break;
-                        case 1:
-                            newRio = new Rio(358,(0+(100*t)),50,100,(velocidadFila*orientacion),false);
-                            break;
-                        default:break;
-                }
-                numeroAleatorio = getRandomInt(0,1);
-                rios.push(newRio);
-            }
-            
-            for (let j=0;j<7;j++){
-                velocidadFila = getRandomInt(1,2);
+            velocidadFila = getRandomInt(1,3);
+            for (let a=0;a<2;a++){
                 for (let t=0;t<13;t++){
                     switch (numeroAleatorio) {
                         case 0:
-                            newRio = new Rio((858+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            newRio = new Rio((165+(a*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
                             break;
                         case 1:
-                            newRio = new Rio((858+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            newRio = new Rio((165+(a*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                    }
+                    numeroAleatorio = getRandomInt(0,1);
+                    rios.push(newRio);
+                }
+                velocidadFila = getRandomInt(1,3);
+            }
+            velocidadFila = getRandomInt(1,3);
+            for (let a=0;a<3;a++){
+                for (let t=0;t<13;t++){
+                    switch (numeroAleatorio) {
+                        case 0:
+                            newRio = new Rio((373+(a*51)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 1:
+                            newRio = new Rio((373+(a*51)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                    }
+                    numeroAleatorio = getRandomInt(0,1);
+                    rios.push(newRio);
+                }
+                velocidadFila = getRandomInt(1,3);
+            }
+
+            for (let a=0;a<3;a++){
+                for (let t=0;t<13;t++){
+                    switch (numeroAleatorio) {
+                        case 0:
+                            newRio = new Rio((623+(a*51)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 1:
+                            newRio = new Rio((623+(a*51)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
+                            break;
+                        default:break;
+                    }
+                    numeroAleatorio = getRandomInt(0,1);
+                    rios.push(newRio);
+                }
+                velocidadFila = getRandomInt(1,3);
+            }
+            
+            for (let j=0;j<7;j++){
+                velocidadFila = getRandomInt(1,3);
+                for (let t=0;t<13;t++){
+                    switch (numeroAleatorio) {
+                        case 0:
+                            newRio = new Rio((872+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),true);
+                            break;
+                        case 1:
+                            newRio = new Rio((872+(j*55)),(0+(100*t)),50,100,(velocidadFila*orientacion),false);
                             break;
                         default:break;
                     }
@@ -315,6 +350,7 @@
                     rios.push(newRio);
                 }
                 orientacion = orientacion*-1;
+                velocidadFila = getRandomInt(1,3);
             }
         };
 
@@ -443,7 +479,6 @@
                 chapuzonAguaSound.muted = !chapuzonAguaSound.muted;
                 golpeSound.muted = !golpeSound.muted;
             }
-            console.log("Código: "+e.keyCode); ///////////////Eliminar al finalizar
         });
 
         document.addEventListener("keyup", (e) => {
@@ -456,7 +491,6 @@
                 return false;
             }else{
                 tiempoTotalSegundosMasCooldown+=player.cD;
-                console.log("Hice un dash");
                 return true;
             }
         }
@@ -515,22 +549,18 @@
                     case 2: //150+(w*320),550,300,100
                         if (x>=150 && y>=550 &&
                             x<=450 && y<=650){
-                            console.log("Modificador 1")
                             addModToPlayer(1);
                         }
                         if (x>=470 && y>=550 &&
                             x<=770 && y<=650){
-                            console.log("Modificador 2")
                             addModToPlayer(2);
                         }
                         if (x>=790 && y>=550 &&
                             x<=1090 && y<=650){
-                            console.log("Modificador 3")
                             addModToPlayer(3);
                         }
                         if (x>=1110 && y>=550 &&
                             x<=1410 && y<=650){
-                            console.log("Modificador 4")
                             addModToPlayer(4);
                         }
                         break;
@@ -546,11 +576,10 @@
         };
 
         addEventListener("mousedown", (e) => {
-            console.log(e.offsetX+", "+e.offsetY);
             gameOptions(e.offsetX,e.offsetY);
         })
 
-        enemysLevelThree();
+        enemysLevelOne();
 
         function update(){
             if (pause || juegoTerminado){
@@ -584,9 +613,7 @@
                     golpeSound.play();
                     if (player.vida==0){
                         juegoTerminado=true;
-                        console.log("El jugador perdió todas sus vidas");
                     }else{
-                        console.log("Vida del jugador: "+(player.vida-1))
                         player.vida-=1;
                         player.x=10;//Reinicia la posicion del jugador
                         player.y=420;//Reinicia la posicion del jugador
@@ -605,9 +632,7 @@
                     }else{
                         if (player.vida==0){
                             juegoTerminado=true;
-                            console.log("El jugador perdió todas sus vidas");
                         }else{
-                            console.log("Vida del jugador: "+(player.vida-1))
                             player.vida-=1;
                             player.x=10;//Reinicia la posicion del jugador
                             player.y=420;//Reinicia la posicion del jugador
@@ -687,6 +712,14 @@
                             drawSprite(roadWinter,0,0,64,64,260+(y*250),(752-(j*128)),128,128);
                         };
                     };
+                    //Rios
+                    rios.forEach(drawRio => {
+                        if (drawRio.isSecure){
+                            drawSprite(rioConBase,0,0,drawRio.w,drawRio.h,drawRio.x,drawRio.y,drawRio.w,drawRio.h);
+                        }else{
+                            drawSprite(rioSinBase,0,0,drawRio.w,drawRio.h,drawRio.x,drawRio.y,drawRio.w,drawRio.h);
+                        };
+                    });
                     break;
                 default:break;
             };
@@ -809,7 +842,6 @@
                     ctx.fillText("Elige un modificador para continuar hacia el nivel "+(nivelActual+1),440,370);
                     switch (selectMod) {
                         case 0:
-                            console.log("ESPERANDO SELECCION....");
                             for (let w=0;w<4;w++){
                                 ctx.fillStyle = "black";
                                 ctx.strokeStyle = "white";
